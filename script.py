@@ -1,10 +1,11 @@
-# Import libraries
+#script.py
 import pandas as pd # Data processing, CSV file I/O (e.g. pd.read_csv)
 import numpy as np # Linear algebra
 from scipy import stats
 from sentence_transformers import SentenceTransformer, CrossEncoder, util # Sentence embedding and similarity
 import torch
 import streamlit as st
+
 
 # Specify device
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -135,4 +136,3 @@ def find_anime(query, sort_rank=False, corpus_embeddings=corpus_embeddings, n_ro
         df = df.iloc[idx]
         idx = df.corpus_id
         return anime_filtered.iloc[idx]
-    
