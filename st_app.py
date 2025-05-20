@@ -121,8 +121,18 @@ if query or searched:
 
         # Score distribution
         st.write("### Score Distribution")
-        score_hist = pd.DataFrame(df_output['Score'].value_counts().sort_index())
-        st.line_chart(score_hist)
+        # Create DataFrame with index as rank
+        score_data = pd.DataFrame({
+            'Score': df_output['Score'],
+            'Title': df_output['Title']
+        }).reset_index(names=['Rank'])
+        
+        # Create the chart with custom config
+        st.line_chart(
+            score_data.set_index('Rank')['Score'],
+            use_container_width=True
+        )
+        st.caption(f"Search query: {query}")
 
     # Add download options for analytics
     st.divider()

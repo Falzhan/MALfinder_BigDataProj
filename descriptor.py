@@ -62,31 +62,58 @@ class AnimeDescriptor:
         """Generate visualization plots"""
         plots = {}
         
+        # Score Distribution
         if 'Score' in df.columns:
-            # Score distribution by rank
             plt.figure(figsize=(12, 6))
             sorted_df = df.sort_values('Score', ascending=True)
             plt.plot(range(len(sorted_df)), sorted_df['Score'], marker='o')
-            
-            # Add title labels
-            for i, row in enumerate(sorted_df.itertuples()):
-                title = row.Title if hasattr(row, 'Title') else row.Name
-                plt.annotate(
-                    title[:20] + ('...' if len(title) > 20 else ''),
-                    (i, row.Score),
-                    xytext=(5, 5),
-                    textcoords='offset points',
-                    fontsize=8,
-                    rotation=45,
-                    ha='left'
-                )
-            
             plt.grid(True, alpha=0.3)
             plt.xlabel('Rank')
             plt.ylabel('Score')
             plt.title('Anime Scores Distribution')
             plt.tight_layout()
             plots['score_dist'] = plt.gcf()
+            plt.close()
+
+        # Type Distribution
+        if 'Type' in df.columns:
+            plt.figure(figsize=(10, 6))
+            type_counts = df['Type'].value_counts()
+            type_counts.plot(kind='bar')
+            plt.title('Distribution by Type')
+            plt.xlabel('Type')
+            plt.ylabel('Count')
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            plots['type_dist'] = plt.gcf()
+            plt.close()
+
+        # Genre Distribution
+        if 'Genres' in df.columns:
+            plt.figure(figsize=(12, 6))
+            genres = df['Genres'].str.split(',').explode()
+            genre_counts = genres.value_counts().head(10)
+            genre_counts.plot(kind='bar')
+            plt.title('Top 10 Genres Distribution')
+            plt.xlabel('Genre')
+            plt.ylabel('Count')
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            plots['genre_dist'] = plt.gcf()
+            plt.close()
+
+        # Theme Distribution
+        if 'Themes' in df.columns:
+            plt.figure(figsize=(12, 6))
+            themes = df['Themes'].str.split(',').explode()
+            theme_counts = themes.value_counts().head(10)
+            theme_counts.plot(kind='bar')
+            plt.title('Top 10 Themes Distribution')
+            plt.xlabel('Theme')
+            plt.ylabel('Count')
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            plots['theme_dist'] = plt.gcf()
             plt.close()
         
         return plots
@@ -141,7 +168,16 @@ class AnimeDescriptor:
         doc.add_heading('Visualizations', level=1)
         plots = self.generate_plots(df)
         
+        # Add each plot with its own heading
+        plot_titles = {
+            'score_dist': 'Score Distribution',
+            'type_dist': 'Distribution by Type',
+            'genre_dist': 'Genre Distribution',
+            'theme_dist': 'Theme Distribution'
+        }
+        
         for name, fig in plots.items():
+            doc.add_heading(plot_titles[name], level=2)
             plot_path = f'temp_{name}.png'
             fig.savefig(plot_path, bbox_inches='tight', dpi=300)
             doc.add_picture(plot_path, width=Inches(6))
