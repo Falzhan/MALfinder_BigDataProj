@@ -23,6 +23,11 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
 
+    /* --- HIDE STREAMLIT TOP BAR --- */
+    [data-testid="stHeader"] {
+        display: none;
+    }
+
     /* --- GLOBAL TEXT SIZE --- */
     html, body, [class*="css"] {
         font-family: 'Roboto', sans-serif;
@@ -264,7 +269,7 @@ with st.sidebar:
     st.markdown("---")
     page_selection = st.radio("Navigation", ["Dashboard", "Semantic Search"])
     st.markdown("---")
-    st.caption("v3.0 | Images & Refined CSS")
+    st.caption("v3.4 | Button Removed")
 
 # =============================================================================
 # DASHBOARD PAGE
@@ -291,7 +296,8 @@ if page_selection == "Dashboard":
         
     with c_head_filters:
         # Layout inside the right half: 
-        # [Genre Text][Btn] | [Demo Text][Btn] | [Reset Btn]
+        # [Genre Text] [Btn] [Demo Text] [Btn] [Reset Btn]
+        # Adjusted weights back to 5 columns
         f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns([4, 1, 4, 1, 0.8], gap="small", vertical_alignment="center")
         
         # --- Genre Filter ---
@@ -373,6 +379,10 @@ if page_selection == "Dashboard":
     # --- ROW 1: TOP 15 + HIGHLIGHT (40:60 RATIO) ---
     c_top_chart, c_highlight = st.columns([4, 6])
     
+    # Initialize selection state if not exists
+    if "selected_anime" not in st.session_state:
+        st.session_state.selected_anime = None
+
     with c_top_chart:
         st.markdown('<h3 class="section-header">Top 15 Anime by Score</h3>', unsafe_allow_html=True)
         if not dashboard_df.empty:
@@ -401,19 +411,43 @@ if page_selection == "Dashboard":
                     color='#0D47A1'
                 ),
                 yaxis=dict(showgrid=False, color='#0D47A1'),
-                hoverlabel=dict(bgcolor="rgba(255,255,255,0.9)", font_color="#0D47A1")
+                hoverlabel=dict(bgcolor="rgba(255,255,255,0.9)", font_color="#0D47A1"),
+                clickmode='event+select'
             )
-            st.plotly_chart(fig_top15, use_container_width=True)
-    
+            
+            # Use st.plotly_chart with on_select parameter to capture click events
+            # key ensures statefulness
+            chart_event = st.plotly_chart(
+                fig_top15, 
+                use_container_width=True, 
+                on_select="rerun", 
+                selection_mode="points",
+                key="top15_chart"
+            )
+
+    # --- Highlight Card Logic ---
     with c_highlight:
         st.markdown('<h3 class="section-header">Top Selection</h3>', unsafe_allow_html=True)
         if not dashboard_df.empty:
-            top_anime = dashboard_df.loc[dashboard_df['Score'].idxmax()]
-            desc = str(top_anime['Description'])
+            top_anime_row = None
+            
+            # 1. Check if user clicked the chart
+            if chart_event and len(chart_event.selection['points']) > 0:
+                selected_title = chart_event.selection['points'][0]['y']
+                # Verify the selected title exists in current filtered data
+                if selected_title in dashboard_df['Title'].values:
+                    top_anime_row = dashboard_df[dashboard_df['Title'] == selected_title].iloc[0]
+            
+            # 2. Fallback: If no valid selection, default to the #1 score
+            if top_anime_row is None:
+                top_anime_row = dashboard_df.loc[dashboard_df['Score'].idxmax()]
+            
+            # Display logic
+            desc = str(top_anime_row['Description'])
             if desc == "nan": desc = "No description available."
             
             # --- Image Scraping Integration ---
-            img_url = get_img_url(top_anime.get('Url'))
+            img_url = get_img_url(top_anime_row.get('Url'))
             
             # Determine content of the image box
             if img_url:
@@ -422,13 +456,13 @@ if page_selection == "Dashboard":
                 img_content = '<span>Image<br>Placeholder</span>'
 
             st.markdown(f"""
-            <a href="{top_anime['Url']}" target="_blank" class="highlight-link">
+            <a href="{top_anime_row['Url']}" target="_blank" class="highlight-link">
                 <div class="highlight-card">
                     <div class="highlight-header">
                         <div class="highlight-img-placeholder">
                             {img_content}
                         </div>
-                        <div class="highlight-meta"><h2>{top_anime['Title']}</h2><span class="highlight-badge">Score: {top_anime['Score']}</span></div>
+                        <div class="highlight-meta"><h2>{top_anime_row['Title']}</h2><span class="highlight-badge">Score: {top_anime_row['Score']}</span></div>
                     </div>
                     <div class="highlight-desc">{desc}</div>
                     <div class="click-hint">Click to view on MAL ↗</div>
