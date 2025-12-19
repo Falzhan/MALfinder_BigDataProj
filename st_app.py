@@ -5,6 +5,7 @@ import image_scrap # Import the new scraping module
 import plotly.express as px
 import plotly.graph_objects as go
 import ast
+import time
 
 # -----------------------------------------------------------------------------
 # PAGE CONFIGURATION
@@ -35,7 +36,7 @@ st.markdown("""
         font-size: 1.15rem; 
     }
 
-    /* Main Background */
+    /* Main Background - DEFAULT STATE */
     .stApp {
         background: linear-gradient(0deg, #E3F2FD 0%, #BBDEFB 50%, #90CAF9 100%);
         background-attachment: fixed;
@@ -53,7 +54,7 @@ st.markdown("""
         border-right: 1px solid rgba(255, 255, 255, 0.5);
     }
 
-    /* --- GLASS TITLE CONTAINER (UPDATED) --- */
+    /* --- GLASS TITLE CONTAINER --- */
     .title-glass {
         background: rgba(255, 255, 255, 0.6);
         backdrop-filter: blur(15px);
@@ -63,7 +64,7 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.7);
         box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
         display: block;
-        width: 105%; /* Width adjusted as requested */
+        width: 105%;
         margin-bottom: 10px;
         text-align: center;
     }
@@ -78,34 +79,31 @@ st.markdown("""
         font-weight: 900;
         letter-spacing: -1px;
         line-height: 1.1;
-        white-space: nowrap; /* Forces text to stay on one line */
+        white-space: nowrap;
     }
 
-    /* --- FILTER & BUTTON STYLING (UPDATED) --- */
+    /* --- FILTER & BUTTON STYLING --- */
     
-    /* Filter Labels (The text above the buttons) */
+    /* Filter Labels */
     .filter-label-text {
         font-family: 'Roboto', sans-serif;
         font-weight: 800;
-        font-size: 1.8rem; /* INCREASED SIZE as requested */
+        font-size: 1.8rem;
         background: linear-gradient(45deg, #1565C0, #009688);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        
-        /* Right Align & Vertical Center */
         text-align: right;
         display: flex; 
         justify-content: flex-end; 
         align-items: center; 
-        height: 100%; /* Fill container height to center nicely */
-        
+        height: 100%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         line-height: 1.5;
     }
     
-    /* Integrated Button Styling (Popovers & Reset Button) */
+    /* Integrated Button Styling */
     [data-testid="stPopover"] > button, 
     div.stButton > button {
         background: rgba(255, 255, 255, 0.55) !important;
@@ -119,7 +117,6 @@ st.markdown("""
         transition: all 0.2s ease !important;
         height: auto !important;
         min-height: 45px !important;
-        /* Ensure icon is centered */
         display: flex;
         justify-content: center;
         align-items: center;
@@ -175,13 +172,8 @@ st.markdown("""
     .kpi-value { color: #0D47A1; font-size: 2.2rem; font-weight: 900; line-height: 1; }
     .kpi-subtitle { color: #0097A7; font-size: 0.8rem; font-weight: 600; margin-top: 5px; }
 
-    /* --- HIGHLIGHT CARD (Top Anime) --- */
-    .highlight-link { 
-        text-decoration: none !important; 
-        color: inherit; 
-        display: block; 
-        height: 100%; 
-    }
+    /* --- HIGHLIGHT CARD --- */
+    .highlight-link { text-decoration: none !important; color: inherit; display: block; height: 100%; }
     .highlight-card {
         background: rgba(255, 255, 255, 0.65);
         backdrop-filter: blur(25px);
@@ -197,41 +189,19 @@ st.markdown("""
         position: relative;
         overflow: hidden;
     }
-    .highlight-card:hover {
-        transform: scale(1.01);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        background: rgba(255, 255, 255, 0.85);
-    }
+    .highlight-card:hover { transform: scale(1.01); box-shadow: 0 20px 40px rgba(0,0,0,0.15); background: rgba(255, 255, 255, 0.85); }
     .highlight-header { display: flex; gap: 25px; align-items: flex-start; margin-bottom: 20px; }
-    
-    /* Updated Placeholder for real image */
     .highlight-img-placeholder {
         width: 130px; height: 180px; 
         background: linear-gradient(135deg, #ddd, #f0f0f0);
         border-radius: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
         color: #aaa; font-size: 0.9rem; border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        overflow: hidden; /* Ensure image fits */
-        padding: 0 !important;
+        overflow: hidden; padding: 0 !important;
     }
-    
     .highlight-meta h2 { margin: 0 0 10px 0; font-size: 2rem; color: #0D47A1; font-weight: 900; line-height: 1.1; }
     .highlight-badge { background: #0D47A1; color: white; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 1rem; display: inline-block; box-shadow: 0 4px 10px rgba(13, 71, 161, 0.3); }
-    
-    /* Reduced font size for description */
-    .highlight-desc { 
-        font-size: 0.95rem; 
-        color: #455A64; 
-        line-height: 1.6; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
-        display: -webkit-box; 
-        -webkit-line-clamp: 8; 
-        -webkit-box-orient: vertical; 
-    }
-    
+    .highlight-desc { font-size: 0.95rem; color: #455A64; line-height: 1.6; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; }
     .click-hint { position: absolute; bottom: 25px; right: 30px; font-size: 0.9rem; color: #1976D2; font-weight: bold; opacity: 0.8; }
-
-    /* Plotly Transparent Backgrounds */
     .js-plotly-plot .plotly .modebar { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -256,7 +226,6 @@ except Exception as e:
     st.error(f"Error loading data: {e}")
     st.stop()
 
-# Helper for caching image scraping so we don't spam requests on reruns
 @st.cache_data(show_spinner=False)
 def get_img_url(url):
     return image_scrap.get_anime_cover(url)
@@ -267,22 +236,39 @@ def get_img_url(url):
 with st.sidebar:
     st.markdown("### MALFinder Analytics")
     st.markdown("---")
-    page_selection = st.radio("Navigation", ["Dashboard", "Semantic Search"])
+    page_selection = st.radio("Navigation", ["Overview", "Semantic Search"])
     st.markdown("---")
-    st.caption("v3.4 | Button Removed")
+    st.caption("Dataset: Summer 2024 |  By: Montefalcon")
 
 # =============================================================================
 # DASHBOARD PAGE
 # =============================================================================
-if page_selection == "Dashboard":
+if page_selection == "Overview":
 
     # --- RESET LOGIC ---
     if "g_rad" not in st.session_state: st.session_state.g_rad = "All Genres"
     if "d_rad" not in st.session_state: st.session_state.d_rad = "All Demographics"
+    # --- SNAPSHOT STATE ---
+    if "snapshot_mode" not in st.session_state: st.session_state.snapshot_mode = False
 
     def reset_filters():
         st.session_state.g_rad = "All Genres"
         st.session_state.d_rad = "All Demographics"
+
+    # --- INJECT SNAPSHOT CSS IF ACTIVE ---
+    if st.session_state.snapshot_mode:
+        st.markdown("""
+        <style>
+            .stApp {
+                /* Force background to cover at least 2000px vertically */
+                background: linear-gradient(0deg, #E3F2FD 0%, #BBDEFB 50%, #90CAF9 100%) !important;
+                background-attachment: initial !important; /* Not fixed, effectively 'scroll' but allows height stretching */
+                min-height: 2000px !important; 
+                background-size: 100% 100% !important; /* Stretch gradient to fill the forced height */
+                background-repeat: no-repeat !important;
+            }
+        </style>
+        """, unsafe_allow_html=True)
 
     # --- HEADER SECTION (40:60 SPLIT) ---
     c_head_title, c_head_filters = st.columns([0.8, 1.2], gap="medium", vertical_alignment="center")
@@ -295,44 +281,43 @@ if page_selection == "Dashboard":
         """, unsafe_allow_html=True)
         
     with c_head_filters:
-        # Layout inside the right half: 
-        # [Genre Text] [Btn] [Demo Text] [Btn] [Reset Btn]
-        # Adjusted weights back to 5 columns
-        f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns([4, 1, 4, 1, 0.8], gap="small", vertical_alignment="center")
+        # Layout: [Genre Text] [Btn] [Demo Text] [Btn] [Reset Btn] [Snapshot Btn]
+        f_col1, f_col2, f_col3, f_col4, f_col5, f_col6 = st.columns([3.5, 1, 4.0, 1, 0.7, 0.7], gap="small", vertical_alignment="center")
         
         # --- Genre Filter ---
         with f_col1:
             st.markdown(f"<div class='filter-label-text'>{st.session_state.g_rad}</div>", unsafe_allow_html=True)
         with f_col2:
             all_genres = sorted(list(set([g for genres in anime_filtered['Genres_List'] for g in genres])))
-            # Filter unknowns from dropdown list
             all_genres = [g for g in all_genres if "unknown" not in str(g).lower()]
-            
             with st.popover("", icon=":material/filter_list:", use_container_width=True):
                 st.markdown("**Select Genre**")
-                st.radio(
-                    "Genre", ["All Genres"] + all_genres, key="g_rad", label_visibility="collapsed"
-                )
+                st.radio("Genre", ["All Genres"] + all_genres, key="g_rad", label_visibility="collapsed")
 
         # --- Demographic Filter ---
         with f_col3:
             st.markdown(f"<div class='filter-label-text'>{st.session_state.d_rad}</div>", unsafe_allow_html=True)
         with f_col4:
             all_demos = sorted(list(set([d for demos in anime_filtered['Demographics_List'] for d in demos])))
-            # Filter unknowns from dropdown list
             all_demos = [d for d in all_demos if "unknown" not in str(d).lower()]
-            
             with st.popover("", icon=":material/filter_list:", use_container_width=True):
                 st.markdown("**Select Demographic**")
-                st.radio(
-                    "Demographic", ["All Demographics"] + all_demos, key="d_rad", label_visibility="collapsed"
-                )
+                st.radio("Demographic", ["All Demographics"] + all_demos, key="d_rad", label_visibility="collapsed")
         
         # --- Reset Button ---
         with f_col5:
             if st.button("↺", type="secondary", help="Reset Filters", on_click=reset_filters):
                 pass 
 
+        # --- Snapshot Toggle Button ---
+        with f_col6:
+            # When active: Type=Primary (Filled/Hovered appearance). When inactive: Secondary (Ghost)
+            btn_type = "primary" if st.session_state.snapshot_mode else "secondary"
+            btn_help = "Exit Snapshot Mode" if st.session_state.snapshot_mode else "Enter Snapshot Mode (Fixes Background)"
+            
+            if st.button("", icon=":material/save:", type=btn_type, help=btn_help):
+                st.session_state.snapshot_mode = not st.session_state.snapshot_mode
+                st.rerun()
 
     # --- DATA FILTERING ---
     dashboard_df = anime_filtered.copy()
@@ -348,12 +333,10 @@ if page_selection == "Dashboard":
 
     # --- KPI CARDS ---
     k1, k2, k3, k4 = st.columns(4)
-    
     total_titles = len(dashboard_df)
     avg_score = dashboard_df['Score'].mean() if not dashboard_df.empty else 0
     delta_score = avg_score - anime_filtered[(anime_filtered['Score'] >= 3.0)]['Score'].mean()
     total_members_m = dashboard_df['Members'].sum() / 1_000_000
-    
     eps_df = dashboard_df[dashboard_df['Episodes'] != 'Unknown'].copy()
     eps_df['Episodes_Numeric'] = pd.to_numeric(eps_df['Episodes'], errors='coerce')
     avg_eps = eps_df['Episodes_Numeric'].mean() if not eps_df.empty else 0
@@ -380,15 +363,12 @@ if page_selection == "Dashboard":
     c_top_chart, c_highlight = st.columns([4, 6])
     
     # Initialize selection state if not exists
-    if "selected_anime" not in st.session_state:
-        st.session_state.selected_anime = None
+    if "selected_anime" not in st.session_state: st.session_state.selected_anime = None
 
     with c_top_chart:
         st.markdown('<h3 class="section-header">Top 15 Anime by Score</h3>', unsafe_allow_html=True)
         if not dashboard_df.empty:
             top_15 = dashboard_df.nlargest(15, 'Score')[['Title', 'Score', 'Members']].reset_index(drop=True)
-            
-            # --- Dynamic Axis Calculation ---
             min_score = top_15['Score'].min()
             max_score = top_15['Score'].max()
             range_min = min_score - 0.05
@@ -404,19 +384,11 @@ if page_selection == "Dashboard":
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                 font={'color': '#0D47A1', 'size': 14, 'family': 'Roboto'},
                 margin=dict(l=10, r=20, t=10, b=10), height=500,
-                xaxis=dict(
-                    showgrid=True, 
-                    gridcolor='rgba(25, 118, 210, 0.1)', 
-                    range=[range_min, range_max],
-                    color='#0D47A1'
-                ),
+                xaxis=dict(showgrid=True, gridcolor='rgba(25, 118, 210, 0.1)', range=[range_min, range_max], color='#0D47A1'),
                 yaxis=dict(showgrid=False, color='#0D47A1'),
                 hoverlabel=dict(bgcolor="rgba(255,255,255,0.9)", font_color="#0D47A1"),
                 clickmode='event+select'
             )
-            
-            # Use st.plotly_chart with on_select parameter to capture click events
-            # key ensures statefulness
             chart_event = st.plotly_chart(
                 fig_top15, 
                 use_container_width=True, 
@@ -430,26 +402,16 @@ if page_selection == "Dashboard":
         st.markdown('<h3 class="section-header">Top Selection</h3>', unsafe_allow_html=True)
         if not dashboard_df.empty:
             top_anime_row = None
-            
-            # 1. Check if user clicked the chart
             if chart_event and len(chart_event.selection['points']) > 0:
                 selected_title = chart_event.selection['points'][0]['y']
-                # Verify the selected title exists in current filtered data
                 if selected_title in dashboard_df['Title'].values:
                     top_anime_row = dashboard_df[dashboard_df['Title'] == selected_title].iloc[0]
-            
-            # 2. Fallback: If no valid selection, default to the #1 score
             if top_anime_row is None:
                 top_anime_row = dashboard_df.loc[dashboard_df['Score'].idxmax()]
             
-            # Display logic
             desc = str(top_anime_row['Description'])
             if desc == "nan": desc = "No description available."
-            
-            # --- Image Scraping Integration ---
             img_url = get_img_url(top_anime_row.get('Url'))
-            
-            # Determine content of the image box
             if img_url:
                 img_content = f'<img src="{img_url}" style="width:100%; height:100%; object-fit:cover; display:block;">'
             else:
@@ -492,9 +454,7 @@ if page_selection == "Dashboard":
     with c_mid2:
         st.markdown('<h3 class="section-header">Genre Popularity</h3>', unsafe_allow_html=True)
         genres_expanded = dashboard_df.explode('Genres_List')
-        # Robust filtering for 'Unknown', 'Unknown-Genre', etc.
         genres_expanded = genres_expanded[~genres_expanded['Genres_List'].astype(str).str.contains('unknown', case=False, na=False)]
-        
         genre_counts = genres_expanded['Genres_List'].value_counts().reset_index().head(12)
         genre_counts.columns = ['Genre', 'Count']
         genre_scores = genres_expanded.groupby('Genres_List')['Score'].mean().reset_index()
@@ -522,9 +482,7 @@ if page_selection == "Dashboard":
     with c_bot1:
         st.markdown('<h3 class="section-header">Top Themes</h3>', unsafe_allow_html=True)
         themes_expanded = dashboard_df.explode('Themes_List')
-        # Robust filtering for 'Unknown', 'Unknown-Themes'
         themes_expanded = themes_expanded[~themes_expanded['Themes_List'].astype(str).str.contains('unknown', case=False, na=False)]
-        
         theme_counts = themes_expanded['Themes_List'].value_counts().reset_index().head(10)
         theme_counts.columns = ['Theme', 'Count']
         theme_counts = theme_counts.sort_values('Count', ascending=True)
@@ -546,7 +504,6 @@ if page_selection == "Dashboard":
         st.markdown('<h3 class="section-header">Type Split</h3>', unsafe_allow_html=True)
         type_counts = dashboard_df['Type'].value_counts().reset_index()
         type_counts.columns = ['Type', 'Count']
-        # Robust filtering for 'Unknown'
         type_counts = type_counts[~type_counts['Type'].astype(str).str.contains('unknown', case=False, na=False)]
 
         fig_donut = go.Figure(go.Pie(
@@ -554,25 +511,17 @@ if page_selection == "Dashboard":
             marker=dict(colors=['#0288D1', '#03A9F4', '#29B6F6', '#4FC3F7', '#81D4FA']),
             textfont=dict(color='#0D47A1', weight='bold', size=13)
         ))
-        # Add labels outside with pointers
         fig_donut.update_traces(textposition='outside', textinfo='label+percent')
-        
-        # INCREASED MARGINS so annotations don't clip
         fig_donut.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font={'color': '#0D47A1'}, 
-            margin=dict(l=40, r=40, t=40, b=40), 
-            height=320, 
-            showlegend=False
+            font={'color': '#0D47A1'}, margin=dict(l=40, r=40, t=40, b=40), height=320, showlegend=False
         )
         st.plotly_chart(fig_donut, use_container_width=True)
 
     with c_bot3:
         st.markdown('<h3 class="section-header">Demographics</h3>', unsafe_allow_html=True)
         demo_expanded = dashboard_df.explode('Demographics_List')
-        # Robust filtering for 'Unknown', 'Unknown-Demographics'
         demo_expanded = demo_expanded[~demo_expanded['Demographics_List'].astype(str).str.contains('unknown', case=False, na=False)]
-
         demo_counts = demo_expanded['Demographics_List'].value_counts().reset_index()
         demo_counts.columns = ['Demographic', 'Count']
         
